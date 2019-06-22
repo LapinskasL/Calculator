@@ -3,9 +3,8 @@
     'INCOMPLETE PROJECT
 
     '@@@ EXTREMELY IMPORTANT TODO: Debug all the calcualtion buttons before moving onto DISTANT TODO.
-
-    'TODO: simplify code, implement decimal button, debug buttons,
-    '      fix colors, fix component placement... And probably more
+    'Simplify Code: merge AddorSub and MulOrDiv functions together
+    'TODO: simplify code, debug buttons, fix component placement... And probably more
 
 
 
@@ -43,24 +42,6 @@
     End Sub
 
 
-
-
-
-    Private Sub btnEquals_Click(sender As Object, e As EventArgs) Handles btnEquals.Click
-        Dim partOne As String = lblWorkspaceHold.Text
-        Dim partTwo As String = txtWorkspace.Text
-        Dim bothParts As String = partOne & partTwo
-
-        If bothParts.Contains("x") Then
-            bothParts = bothParts.Replace("x", "*")
-        End If
-
-        Dim result As Double = New DataTable().Compute(bothParts, Nothing)
-        txtWorkspace.Tag = "resetTrue"
-
-        txtWorkspace.Text = result
-        lblWorkspaceHold.Text = ""
-    End Sub
 
 
     Private Sub btnClear_Click(sender As Object, e As EventArgs) Handles btnClear.Click
@@ -112,11 +93,11 @@
 
 
     Private Sub btnPlus_Click(sender As Object, e As EventArgs) Handles btnPlus.Click
-        CalculateWith("+")
+        AddOrSub("+")
     End Sub
 
     Private Sub btnMinus_Click(sender As Object, e As EventArgs) Handles btnMinus.Click
-        CalculateWith("-")
+        AddOrSub("-")
     End Sub
 
     Private Sub btnTimes_Click(sender As Object, e As EventArgs) Handles btnTimes.Click
@@ -133,7 +114,29 @@
         signChanged = False
     End Sub
 
+    Private Sub btnEquals_Click(sender As Object, e As EventArgs) Handles btnEquals.Click
+        Dim partOne As String = lblWorkspaceHold.Text
+        Dim partTwo As String = txtWorkspace.Text
+        Dim bothParts As String = partOne & partTwo
 
+        If bothParts.Contains("x") Then
+            bothParts = bothParts.Replace("x", "*")
+        End If
+
+        Dim result As Decimal = New DataTable().Compute(bothParts, Nothing)
+        txtWorkspace.Tag = "resetTrue"
+
+        ' TESTING
+        Dim test As String = ""
+        test = CleanUpExpression(lblWorkspaceHold.Text & " " & txtWorkspace.Text)
+
+
+        txtWorkspace.Text = result
+        lblWorkspaceHold.Text = ""
+
+
+
+    End Sub
 
 
 
@@ -157,11 +160,21 @@
 
         EnteredButton = CType(sender, Button)
         EnteredButton.BackColor = Color.FromArgb(255, 144, 0) 'orange
+        EnteredButton.ForeColor = Color.FromArgb(31, 31, 31) 'orange
     End Sub
 
-    Private Sub NonDigitButtons_MouseLeave(sender As Object, e As EventArgs) Handles btnBackspace.MouseLeave, btnTimes.MouseLeave,
-                                            btnPlusMinus.MouseLeave, btnPlus.MouseLeave, btnMinus.MouseLeave, btnEquals.MouseLeave,
-                                            btnDivide.MouseLeave, btnDecimal.MouseLeave, btnClearEntry.MouseLeave, btnClear.MouseLeave
+    Private Sub Column4Buttons_MouseLeave(sender As Object, e As EventArgs) Handles btnTimes.MouseLeave, btnPlus.MouseLeave,
+                                            btnMinus.MouseLeave, btnEquals.MouseLeave, btnDivide.MouseLeave
+        Dim LeftButton As Button
+
+        LeftButton = CType(sender, Button)
+        LeftButton.BackColor = Color.FromArgb(19, 19, 19)
+        LeftButton.ForeColor = Color.FromArgb(255, 255, 255) 'orange
+    End Sub
+
+    Private Sub NonDigitButtons_MouseLeave(sender As Object, e As EventArgs) Handles btnBackspace.MouseLeave,
+                                            btnPlusMinus.MouseLeave, btnMinus.MouseLeave, btnDecimal.MouseLeave,
+                                            btnClearEntry.MouseLeave, btnClear.MouseLeave
         Dim LeftButton As Button
 
         LeftButton = CType(sender, Button)
@@ -206,6 +219,8 @@
 
 
 
+
+
     Private Sub btnBackspace_Click(sender As Object, e As EventArgs) Handles btnBackspace.Click
         If txtWorkspace.Text <> "0" And txtWorkspace.Text <> "" Then
             If txtWorkspace.Text.Length = 2 And txtWorkspace.Text.Contains("-"c) Then
@@ -230,16 +245,52 @@
 
 
 
+    Public Sub RemoveAt(Of T)(ByRef arr As T(), ByVal index As Integer)
+        Dim uBound = arr.GetUpperBound(0)
+        Dim lBound = arr.GetLowerBound(0)
+        Dim arrLen = uBound - lBound
+
+        If index < lBound OrElse index > uBound Then
+            Throw New ArgumentOutOfRangeException(
+        String.Format("Index must be from {0} to {1}.", lBound, uBound))
+
+        Else
+            'create an array 1 element less than the input array
+            Dim outArr(arrLen - 1) As T
+            'copy the first part of the input array
+            Array.Copy(arr, 0, outArr, 0, index)
+            'then copy the second part of the input array
+            Array.Copy(arr, index + 1, outArr, index, uBound - index)
+
+            arr = outArr
+        End If
+    End Sub
 
 
+    Private Function CleanUpExpression(expressionText As String)
+        Dim expressionArray() As String = Split(expressionText)
+        Dim thing As String
+
+        For index = 0 To expressionArray.Length - 1
+            If expressionArray(index) = "/" Or expressionArray(index) = "x" Or
+               expressionArray(index) = "+" Or expressionArray(index) = "-" Then
+                expressionArray(index) = ""
+            End If
+        Next
+
+        For index = 0 To expressionArray.Length - 1
+            thing = expressionArray(index)
+        Next
+
+        Return expressionText
+    End Function
 
 
-
-    Private Sub EnterNumber(number As Double)
-        If txtWorkspace.Text = 0 Then
+    Private Sub EnterNumber(number As Decimal)
+        If txtWorkspace.Text = 0 And Not txtWorkspace.Text = "0." Then
             txtWorkspace.Text = number
             txtWorkspace.Tag = "resetFalse"
-        ElseIf txtWorkspace.Tag = "resetTrue" Then
+        ElseIf txtWorkspace.Tag = "resetTrue" And Not txtWorkspace.Text = "0." Then
             txtWorkspace.Text = number
             txtWorkspace.Tag = "resetFalse"
         ElseIf lblWorkspaceHold.Text <> "" And txtWorkspace.Tag = "resetFalse" Then
@@ -259,9 +310,9 @@
     Private Sub MulOrDiv(sign)
         If signChanged = True Then
             If sign = "*" Then
-                lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 1) & " x "
+                lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 3) & " x "
             Else
-                lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 1) & " " & sign & " "
+                lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 3) & " " & sign & " "
             End If
         Else
             If sign = "*" Then
@@ -272,7 +323,9 @@
 
             Dim bothParts As String = lblWorkspaceHold.Text & txtWorkspace.Text
 
-            Dim result As Double = New DataTable().Compute(bothParts.Replace("x", "*"), Nothing)
+            Dim result As Decimal = New DataTable().Compute(bothParts.Replace("x", "*"), Nothing)
+
+            txtWorkspace.Text = result
 
             txtWorkspace.Tag = "resetTrue"
 
@@ -282,21 +335,10 @@
 
     End Sub
 
-    Private Function Calculate(expression As String)
 
-        Dim hello As String = ""
-        Dim answer As Double = 0
-
-        For index As Integer = 0 To expression.Length - 1
-            hello = expression(index)
-        Next
-
-    End Function
-
-
-    Private Sub CalculateWith(sign As String)
+    Private Sub AddOrSub(sign As String)
         If signChanged = True Then
-            lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 1) & " " & sign & " "
+            lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 3) & " " & sign & " "
         Else
             lblWorkspaceHold.Text += txtWorkspace.Text & " " & sign & " "
 
@@ -307,6 +349,15 @@
             txtWorkspace.Tag = "resetTrue"
 
             signChanged = True
+        End If
+    End Sub
+
+    Private Sub btnDecimal_Click(sender As Object, e As EventArgs) Handles btnDecimal.Click
+        If txtWorkspace.Text.Contains(".") = False And txtWorkspace.Tag = "resetFalse" Then
+            txtWorkspace.Text = txtWorkspace.Text & "."
+        ElseIf txtWorkspace.Tag = "resetTrue" Then
+            txtWorkspace.Text = "0."
+            txtWorkspace.Tag = "resetFalse"
         End If
     End Sub
 End Class
