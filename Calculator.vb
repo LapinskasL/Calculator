@@ -4,8 +4,24 @@ Public Class frmCalculator
 
     'INCOMPLETE PROJECT
 
+    'CURRENT BUGS: 
+    'When buttons are disabled, the keyboard still is able to click them.
+    'This results in an error in the Calculate PROC. 
+    'Solution: Need a Global btnsEnabled Boolean?
+    '-------
+    'When the result is being calculated if the operation parameter in the Calculate PROC is any - or any +,
+    'the result does not get converted to a Decimal value.
+    'Solution: Figure out how to convert to Decimal.
+    '-------
+    'The Enter key is not working properly because the focus on a component overrides KeyDown event 
+    'for the Enter key.
+    'Solution: refocus to another component every time a button is pressed.
+    'If the workspacehold.text is too long, the user cannot see the most recent input.
+    'Solution: make read-only OR scrollbar?
+
+
     '@@@ EXTREMELY IMPORTANT TODO: Debug all the calcualtion buttons before moving onto DISTANT TODO.
-    'TODO: simplify code, debug buttons... And probably more
+    'TODO: debug buttons... And probably more
 
 
 
@@ -13,8 +29,14 @@ Public Class frmCalculator
     'DISTANT TODO: add history, add light/dark modes switch
 
 
-    Dim signChanged As Boolean = False
+    'fix various bugs
+    'merge AddOrSub and MulOrDiv PROCs
+    'merge operation buttons click PROCs
+    'merge number buttons click PROCs
+    'add some documentation to non-event PROCs
 
+    Dim signChanged As Boolean = False
+    Dim resetWorkspace As Boolean = True
 
 
 
@@ -44,11 +66,11 @@ Public Class frmCalculator
 
 
 
-
     Private Sub btnClear_Click(sender As Object, e As EventArgs) Handles btnClear.Click
+        buttonsEnabled(True)
         txtWorkspace.Text = 0
         lblWorkspaceHold.Text = ""
-        txtWorkspace.Tag = "resetFalse"
+        resetWorkspace = False
         signChanged = False
     End Sub
 
@@ -57,14 +79,14 @@ Public Class frmCalculator
     Private Sub frmCalculator_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
 
         If e.KeyCode = Keys.Add OrElse My.Computer.Keyboard.ShiftKeyDown AndAlso e.KeyCode = 187 Then
-            btnPlus_Click(Nothing, Nothing)
+            Calculate("add")
         ElseIf e.KeyCode = Keys.Subtract OrElse e.KeyCode = 189 Then
-            btnMinus_Click(Nothing, Nothing)
+            Calculate("sub")
         ElseIf e.KeyCode = Keys.Multiply OrElse My.Computer.Keyboard.ShiftKeyDown AndAlso e.KeyCode = Keys.D8 Then
-            btnTimes_Click(Nothing, Nothing)
+            Calculate("mul")
         ElseIf e.KeyCode = Keys.Divide OrElse e.KeyCode = 191 Then
-            btnDivide_Click(Nothing, Nothing)
-        ElseIf e.KeyCode = Keys.Return OrElse e.KeyCode = 187 Then
+            Calculate("div")
+        ElseIf e.KeyCode = 13 OrElse e.KeyCode = 187 Then
             btnEquals_Click(Nothing, Nothing)
         ElseIf e.KeyCode = Keys.NumPad0 OrElse e.KeyCode = Keys.D0 Then
             EnterNumber(0)
@@ -96,62 +118,62 @@ Public Class frmCalculator
 
     End Sub
 
-    Private Sub btnZero_Click(sender As Object, e As EventArgs) Handles btnZero.Click
-        EnterNumber(0)
-    End Sub
-    Private Sub btnOne_Click(sender As Object, e As EventArgs) Handles btnOne.Click
-        EnterNumber(1)
-    End Sub
-    Private Sub btnTwo_Click(sender As Object, e As EventArgs) Handles btnTwo.Click
-        EnterNumber(2)
-    End Sub
-    Private Sub btnThree_Click(sender As Object, e As EventArgs) Handles btnThree.Click
-        EnterNumber(3)
-    End Sub
-    Private Sub btnFour_Click(sender As Object, e As EventArgs) Handles btnFour.Click
-        EnterNumber(4)
-    End Sub
-    Private Sub btnFive_Click(sender As Object, e As EventArgs) Handles btnFive.Click
-        EnterNumber(5)
-    End Sub
-    Private Sub btnSix_Click(sender As Object, e As EventArgs) Handles btnSix.Click
-        EnterNumber(6)
-    End Sub
-    Private Sub btnSeven_Click(sender As Object, e As EventArgs) Handles btnSeven.Click
-        EnterNumber(7)
-    End Sub
-    Private Sub btnEight_Click(sender As Object, e As EventArgs) Handles btnEight.Click
-        EnterNumber(8)
-    End Sub
-    Private Sub btnNine_Click(sender As Object, e As EventArgs) Handles btnNine.Click
-        EnterNumber(9)
+    Private Sub NumberButtons_Click(sender As Object, e As EventArgs) Handles btnZero.Click, btnOne.Click, btnTwo.Click,
+                                                    btnThree.Click, btnFour.Click, btnFive.Click, btnSix.Click,
+                                                    btnSeven.Click, btnEight.Click, btnNine.Click
+
+        Dim button As Button = CType(sender, Button)
+
+        Select Case button.Name
+            Case "btnZero"
+                EnterNumber(0)
+            Case "btnOne"
+                EnterNumber(1)
+            Case "btnTwo"
+                EnterNumber(2)
+            Case "btnThree"
+                EnterNumber(3)
+            Case "btnFour"
+                EnterNumber(4)
+            Case "btnFive"
+                EnterNumber(5)
+            Case "btnSix"
+                EnterNumber(6)
+            Case "btnSeven"
+                EnterNumber(7)
+            Case "btnEight"
+                EnterNumber(8)
+            Case "btnNine"
+                EnterNumber(9)
+            Case Else
+                MsgBox("ERROR in NumberButtons_Click PROC: Could not identify button case.", MsgBoxStyle.Critical)
+        End Select
+
     End Sub
 
 
 
+    Private Sub OperationButtons_Click(sender As Object, e As EventArgs) Handles btnPlus.Click, btnMinus.Click, btnTimes.Click, btnDivide.Click
 
+        Dim button As Button = CType(sender, Button)
 
+        Select Case button.Text
+            Case "+", "-", "/"
+                Calculate(button.Text)
+            Case "x"
+                Calculate("*")
+            Case Else
+                MsgBox("ERROR in OperationButtons_Click PROC: Could not identify button case.", MsgBoxStyle.Critical)
+        End Select
 
-
-    Private Sub btnPlus_Click(sender As Object, e As EventArgs) Handles btnPlus.Click
-        AddOrSub("+")
     End Sub
 
-    Private Sub btnMinus_Click(sender As Object, e As EventArgs) Handles btnMinus.Click
-        AddOrSub("-")
-    End Sub
 
-    Private Sub btnTimes_Click(sender As Object, e As EventArgs) Handles btnTimes.Click
-        MulOrDiv("*")
-    End Sub
-
-    Private Sub btnDivide_Click(sender As Object, e As EventArgs) Handles btnDivide.Click
-        MulOrDiv("/")
-    End Sub
 
     Private Sub btnClearEntry_Click(sender As Object, e As EventArgs) Handles btnClearEntry.Click
+        buttonsEnabled(True)
         txtWorkspace.Text = "0"
-        txtWorkspace.Tag = "resetTrue"
+        resetWorkspace = True
         signChanged = False
     End Sub
 
@@ -170,16 +192,15 @@ Public Class frmCalculator
         Try
             result = New DataTable().Compute(bothParts & "*1.0", Nothing)
             txtWorkspace.Text = CleanUpNumber(result)
-            txtWorkspace.Tag = "resetTrue"
+            resetWorkspace = True
             lblWorkspaceHold.Text = ""
             Exit Try
         Catch ex As DivideByZeroException
             txtWorkspace.Text = "Cannot divide by 0"
-            txtWorkspace.Tag = "resetTrue"
-            lblWorkspaceHold.Text = ""
-
+            ErrorCaught()
         Catch ex As OverflowException
             txtWorkspace.Text = "‭Overflow‬"
+            ErrorCaught()
         End Try
 
     End Sub
@@ -291,6 +312,23 @@ Public Class frmCalculator
 
 
 
+
+
+
+    ''' <summary>
+    ''' Runs necessary instructions if an error is caught.
+    ''' </summary>
+    Private Sub ErrorCaught()
+        resetWorkspace = True
+        lblWorkspaceHold.Text = ""
+        buttonsEnabled(False)
+    End Sub
+
+
+    ''' <param name="numberString">A string containing a properly formatted number.</param>
+    ''' <summary>
+    ''' Removes redundant zeros and decimal numbers (ex: 1.0200 would become 1.02).
+    ''' </summary>
     Private Function CleanUpNumber(numberString As String)
         Dim cleanNumber As String = numberString
 
@@ -323,97 +361,141 @@ Public Class frmCalculator
         End If
 
         If cleanNumber.Length > 16 Then
-            cleanNumber = Format(cleanNumber, "Scientific")
+            cleanNumber = Format(cleanNumber, "scientific")
         End If
 
         Return cleanNumber
+
     End Function
 
-
+    ''' <param name="number">A decimal value.</param>
+    ''' <summary>
+    ''' Adds number to the workspace based on current value in workspace. 
+    ''' </summary>
     Private Sub EnterNumber(number As Decimal)
-        If txtWorkspace.Text = "0" AndAlso Not txtWorkspace.Text = "0." Then
-            txtWorkspace.Text = number
-            txtWorkspace.Tag = "resetFalse"
-        ElseIf txtWorkspace.Tag = "resetTrue" AndAlso Not txtWorkspace.Text = "0." Then
-            txtWorkspace.Text = number
-            txtWorkspace.Tag = "resetFalse"
-        ElseIf lblWorkspaceHold.Text <> "" AndAlso txtWorkspace.Tag = "resetFalse" Then
-            txtWorkspace.Text = txtWorkspace.Text & number
-        ElseIf txtWorkspace.Tag = "resetTrue" Then
-            txtWorkspace.Text = txtWorkspace.Text & number
-            txtWorkspace.Tag = "resetFalse"
-        Else
-            txtWorkspace.Text = txtWorkspace.Text & number
-        End If
+        If txtWorkspace.Text.Length < 16 Or resetWorkspace = True Then
+            buttonsEnabled(True)
 
-        signChanged = False
+            If txtWorkspace.Text = "0" AndAlso Not txtWorkspace.Text = "0." Then
+                txtWorkspace.Text = number
+                resetWorkspace = False
+            ElseIf resetWorkspace = True AndAlso Not txtWorkspace.Text = "0." Then
+                txtWorkspace.Text = number
+                resetWorkspace = False
+            ElseIf lblWorkspaceHold.Text <> "" AndAlso resetWorkspace = False Then
+                txtWorkspace.Text = txtWorkspace.Text & number
+            ElseIf resetWorkspace = True Then
+                txtWorkspace.Text = txtWorkspace.Text & number
+                resetWorkspace = False
+            Else
+                txtWorkspace.Text = txtWorkspace.Text & number
+            End If
+
+            signChanged = False
+        End If
     End Sub
 
+    ''' <param name="operation">Operations available: "mul", "div", "sub", or "add".</param>
+    ''' <summary>
+    ''' Calculates the expression based on given operation type. 
+    ''' </summary>
+    Private Sub Calculate(operation As String)
+        Dim sign As String = ""
+        Dim result As String = 0
+        Dim errorOccurred As Boolean = False
 
+        Select Case operation
+            Case "mul", "*"
+                sign = "*"
+            Case "div", "/"
+                sign = "/"
+            Case "add", "+"
+                sign = "+"
+            Case "sub", "-"
+                sign = "-"
+            Case Else
+                MsgBox("ERROR in CalculationType PROC: Could not assign proper sign.", MsgBoxStyle.Critical)
+        End Select
 
-    Private Sub MulOrDiv(sign)
-
-        If signChanged = True Then
-            If sign = "*" Then
-                lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 3) & " x "
-            Else
-                lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 3) & " " & sign & " "
-            End If
+        If signChanged = True And lblWorkspaceHold.Text <> "" Then
+            Select Case operation
+                Case "mul", "*"
+                    lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 3) & " x "
+                Case Else
+                    lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 3) & " " & sign & " "
+            End Select
         Else
-            If sign = "*" Then
-                lblWorkspaceHold.Text += CleanUpNumber(txtWorkspace.Text) & " x "
+            Select Case operation
+                Case "mul", "*"
+                    lblWorkspaceHold.Text += CleanUpNumber(txtWorkspace.Text) & " x "
+                Case Else
+                    lblWorkspaceHold.Text += CleanUpNumber(txtWorkspace.Text) & " " & sign & " "
+            End Select
+
+            If operation = "mul" OrElse operation = "div" OrElse
+               operation = "*" OrElse operation = "/" Then
+                Try
+                    result = New DataTable().Compute("1.0 * " & lblWorkspaceHold.Text.Replace("x", "*") & "1.0", Nothing)
+                    Exit Try
+                Catch ex As DivideByZeroException
+                    txtWorkspace.Text = "Cannot divide by 0"
+                    ErrorCaught()
+                    errorOccurred = True
+                Catch ex As OverflowException
+                    txtWorkspace.Text = "‭Overflow‬"
+                    ErrorCaught()
+                    errorOccurred = True
+                End Try
             Else
-                lblWorkspaceHold.Text += CleanUpNumber(txtWorkspace.Text) & " " & sign & " "
+                Dim bothParts As String = "1.0 * " & lblWorkspaceHold.Text
+                result = New DataTable().Compute(bothParts.Replace("x", "*") & "0.0", Nothing)
             End If
 
-            Dim bothParts As String = lblWorkspaceHold.Text & CleanUpNumber(txtWorkspace.Text)
-
-            Dim result As String = ""
-
-
-
-            Try
-                result = New DataTable().Compute(lblWorkspaceHold.Text.Replace("x", "*") & "* 1.0", Nothing)
+            If errorOccurred = False Then
                 txtWorkspace.Text = CleanUpNumber(result)
-                Exit Try
-            Catch ex As SyntaxErrorException
-            End Try
-
-            txtWorkspace.Tag = "resetTrue"
-
-            signChanged = True
+                resetWorkspace = True
+                signChanged = True
+            End If
         End If
-
 
     End Sub
 
-
-    Private Sub AddOrSub(sign As String)
-        If signChanged = True Then
-            lblWorkspaceHold.Text = lblWorkspaceHold.Text.Substring(0, lblWorkspaceHold.Text.Length - 3) & " " & sign & " "
-        Else
-            lblWorkspaceHold.Text += CleanUpNumber(txtWorkspace.Text) & " " & sign & " "
-
-
-            Dim decWorkSpaceHold As String = "1.0 * " & lblWorkspaceHold.Text
-
-            Dim result = New DataTable().Compute(decWorkSpaceHold.Replace("x", "*") & "0", Nothing)
-
-            txtWorkspace.Text = CleanUpNumber(result)
-
-            txtWorkspace.Tag = "resetTrue"
-
-            signChanged = True
+    ''' <param name="enable">True to enable, False to disable.</param>
+    ''' <summary>
+    ''' Enables or disables non-digit buttons, except for Clear and ClearEntry.
+    ''' </summary>
+    Private Sub buttonsEnabled(enable As Boolean)
+        If enable And btnEquals.Enabled = False Then
+            btnBackspace.Enabled = True
+            btnDivide.Enabled = True
+            btnTimes.Enabled = True
+            btnMinus.Enabled = True
+            btnPlus.Enabled = True
+            btnEquals.Enabled = True
+            btnDecimal.Enabled = True
+            btnPlusMinus.Enabled = True
+        ElseIf enable = False And btnEquals.Enabled = True Then
+            btnBackspace.Enabled = False
+            btnDivide.Enabled = False
+            btnTimes.Enabled = False
+            btnMinus.Enabled = False
+            btnPlus.Enabled = False
+            btnEquals.Enabled = False
+            btnDecimal.Enabled = False
+            btnPlusMinus.Enabled = False
         End If
     End Sub
 
     Private Sub btnDecimal_Click(sender As Object, e As EventArgs) Handles btnDecimal.Click
-        If txtWorkspace.Text.Contains(".") = False AndAlso txtWorkspace.Tag = "resetFalse" Then
+        If txtWorkspace.Text.Contains(".") = False AndAlso resetWorkspace = False Then
             txtWorkspace.Text = txtWorkspace.Text & "."
-        ElseIf txtWorkspace.Tag = "resetTrue" Then
+        ElseIf resetWorkspace = True Then
             txtWorkspace.Text = "0."
-            txtWorkspace.Tag = "resetFalse"
+            resetWorkspace = False
         End If
+
+
     End Sub
+
 
 End Class
