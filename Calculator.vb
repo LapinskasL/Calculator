@@ -47,30 +47,6 @@ Public Class frmCalculator
 
 
 
-    Private Sub btnClearEntry_Click(sender As Object, e As EventArgs) Handles btnClearEntry.Click
-        buttonsEnabled(True)
-        txtWorkspace.Text = "0"
-        resetWorkspace = True
-        signChanged = False
-        errorOccurred = False
-
-        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
-
-    End Sub
-
-
-    Private Sub btnClear_Click(sender As Object, e As EventArgs) Handles btnClear.Click
-        buttonsEnabled(True)
-        txtWorkspace.Text = "0"
-        lblWorkspaceHold.Text = ""
-        resetWorkspace = False
-        signChanged = False
-        errorOccurred = False
-
-        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
-    End Sub
-
-
 
 
     Private Sub frmCalculator_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
@@ -118,6 +94,53 @@ Public Class frmCalculator
         btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
 
     End Sub
+
+    Private Sub lblMinimize_Click(sender As Object, e As EventArgs) Handles lblMinimize.Click
+        Me.WindowState = FormWindowState.Minimized
+    End Sub
+
+    Private Sub lblExit_Click(sender As Object, e As EventArgs) Handles lblExit.Click
+        Me.Close()
+    End Sub
+
+
+    Private Sub btnClearEntry_Click(sender As Object, e As EventArgs) Handles btnClearEntry.Click
+        buttonsEnabled(True)
+        txtWorkspace.Text = "0"
+        resetWorkspace = True
+        signChanged = False
+        errorOccurred = False
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
+
+    End Sub
+
+    Private Sub btnClear_Click(sender As Object, e As EventArgs) Handles btnClear.Click
+        buttonsEnabled(True)
+        txtWorkspace.Text = "0"
+        resetWorkspace = False
+        signChanged = False
+        errorOccurred = False
+
+        lblWorkspaceHold.Text = ""
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
+    End Sub
+
+    Private Sub btnBackspace_Click(sender As Object, e As EventArgs) Handles btnBackspace.Click
+        If CleanUpNumber(txtWorkspace.Text) <> "0" AndAlso txtWorkspace.Text <> "" Then
+            If txtWorkspace.Text.Length = 2 AndAlso txtWorkspace.Text.Contains("-"c) Then
+                txtWorkspace.Text = "0"
+            ElseIf txtWorkspace.Text.Length = 1 Then
+                txtWorkspace.Text = "0"
+            Else
+                txtWorkspace.Text = txtWorkspace.Text.Substring(0, txtWorkspace.Text.Length - 1)
+            End If
+        End If
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
+    End Sub
+
 
     Private Sub NumberButtons_Click(sender As Object, e As EventArgs) Handles btnZero.Click, btnOne.Click, btnTwo.Click,
                                                     btnThree.Click, btnFour.Click, btnFive.Click, btnSix.Click,
@@ -179,6 +202,30 @@ Public Class frmCalculator
             txtWorkspace.Text = "‭Overflow‬"
             ErrorCaught()
         End Try
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
+    End Sub
+
+    Private Sub btnPlusMinus_Click(sender As Object, e As EventArgs) Handles btnPlusMinus.Click
+        If txtWorkspace.Text <> "0" AndAlso txtWorkspace.Text <> "" Then
+            If txtWorkspace.Text.First <> "-" Then
+                txtWorkspace.Text = "-" & txtWorkspace.Text
+            Else
+                txtWorkspace.Text = txtWorkspace.Text.Substring(1, txtWorkspace.Text.Length - 1)
+            End If
+        End If
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
+    End Sub
+
+
+    Private Sub btnDecimal_Click(sender As Object, e As EventArgs) Handles btnDecimal.Click
+        If txtWorkspace.Text.Contains(".") = False AndAlso resetWorkspace = False Then
+            txtWorkspace.Text = txtWorkspace.Text & "."
+        ElseIf resetWorkspace = True Then
+            txtWorkspace.Text = "0."
+            resetWorkspace = False
+        End If
 
         btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
     End Sub
@@ -254,13 +301,6 @@ Public Class frmCalculator
 
 
 
-    Private Sub lblMinimize_Click(sender As Object, e As EventArgs) Handles lblMinimize.Click
-        Me.WindowState = FormWindowState.Minimized
-    End Sub
-
-    Private Sub lblExit_Click(sender As Object, e As EventArgs) Handles lblExit.Click
-        Me.Close()
-    End Sub
 
 
 
@@ -268,59 +308,11 @@ Public Class frmCalculator
 
 
 
-    Private Sub btnBackspace_Click(sender As Object, e As EventArgs) Handles btnBackspace.Click
-        If CleanUpNumber(txtWorkspace.Text) <> "0" AndAlso txtWorkspace.Text <> "" Then
-            If txtWorkspace.Text.Length = 2 AndAlso txtWorkspace.Text.Contains("-"c) Then
-                txtWorkspace.Text = "0"
-            ElseIf txtWorkspace.Text.Length = 1 Then
-                txtWorkspace.Text = "0"
-            Else
-                txtWorkspace.Text = txtWorkspace.Text.Substring(0, txtWorkspace.Text.Length - 1)
-            End If
-        End If
-
-        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
-    End Sub
-
-    Private Sub btnPlusMinus_Click(sender As Object, e As EventArgs) Handles btnPlusMinus.Click
-        If txtWorkspace.Text <> "0" AndAlso txtWorkspace.Text <> "" Then
-            If txtWorkspace.Text.First <> "-" Then
-                txtWorkspace.Text = "-" & txtWorkspace.Text
-            Else
-                txtWorkspace.Text = txtWorkspace.Text.Substring(1, txtWorkspace.Text.Length - 1)
-            End If
-        End If
-
-        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
-    End Sub
-
-
-    Private Sub btnDecimal_Click(sender As Object, e As EventArgs) Handles btnDecimal.Click
-        If txtWorkspace.Text.Contains(".") = False AndAlso resetWorkspace = False Then
-            txtWorkspace.Text = txtWorkspace.Text & "."
-        ElseIf resetWorkspace = True Then
-            txtWorkspace.Text = "0."
-            resetWorkspace = False
-        End If
-
-        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
-    End Sub
 
 
 
 
 
-
-
-    ''' <summary>
-    ''' Runs necessary instructions if an error is caught.
-    ''' </summary>
-    Private Sub ErrorCaught()
-        resetWorkspace = True
-        lblWorkspaceHold.Text = ""
-        buttonsEnabled(False)
-        errorOccurred = True
-    End Sub
 
 
 
@@ -462,35 +454,46 @@ Public Class frmCalculator
 
 
 
+
+
+    ''' <param name="enable">True to enable, False to disable.</param>
+    ''' <summary>
+    ''' Checks if buttons need to be enabled or disabled. If needed, it does so based on parameter request.
+    ''' </summary>
+    Private Sub buttonsEnabled(enable As Boolean)
+        If enable And btnEquals.Enabled = False Then
+            buttonsEnabled_2(enable)
+        ElseIf enable = False And btnEquals.Enabled = True Then
+            buttonsEnabled_2(enable)
+        End If
+    End Sub
+
     ''' <param name="enable">True to enable, False to disable.</param>
     ''' <summary>
     ''' Enables or disables non-digit buttons, except for Clear and ClearEntry.
     ''' </summary>
-    Private Sub buttonsEnabled(enable As Boolean)
-        If enable And btnEquals.Enabled = False Then
-            btnBackspace.Enabled = True
-            btnDivide.Enabled = True
-            btnTimes.Enabled = True
-            btnMinus.Enabled = True
-            btnPlus.Enabled = True
-            btnEquals.Enabled = True
-            btnDecimal.Enabled = True
-            btnPlusMinus.Enabled = True
+    Private Sub buttonsEnabled_2(enable As Boolean)
+        btnBackspace.Enabled = enable
+        btnDivide.Enabled = enable
+        btnTimes.Enabled = enable
+        btnMinus.Enabled = enable
+        btnPlus.Enabled = enable
+        btnEquals.Enabled = enable
+        btnDecimal.Enabled = enable
+        btnPlusMinus.Enabled = enable
 
-            btnsEnabled = True
-        ElseIf enable = False And btnEquals.Enabled = True Then
-            btnBackspace.Enabled = False
-            btnDivide.Enabled = False
-            btnTimes.Enabled = False
-            btnMinus.Enabled = False
-            btnPlus.Enabled = False
-            btnEquals.Enabled = False
-            btnDecimal.Enabled = False
-            btnPlusMinus.Enabled = False
-
-            btnsEnabled = False
-        End If
+        btnsEnabled = enable
     End Sub
 
+
+    ''' <summary>
+    ''' Runs necessary instructions if an error is caught.
+    ''' </summary>
+    Private Sub ErrorCaught()
+        resetWorkspace = True
+        lblWorkspaceHold.Text = ""
+        buttonsEnabled(False)
+        errorOccurred = True
+    End Sub
 
 End Class
