@@ -5,39 +5,19 @@ Public Class frmCalculator
     'INCOMPLETE PROJECT
 
     'CURRENT BUGS: 
-    'When buttons are disabled, the keyboard still is able to click them.
-    'This results in an error in the Calculate PROC. 
-    'Solution: Need a Global btnsEnabled Boolean?
-    '-------
     'When the result is being calculated if the operation parameter in the Calculate PROC is any - or any +,
     'the result does not get converted to a Decimal value.
-    'Solution: Figure out how to convert to Decimal.
-    '-------
-    'The Enter key is not working properly because the focus on a component overrides KeyDown event 
-    'for the Enter key.
-    'Solution: refocus to another component every time a button is pressed.
-    'If the workspacehold.text is too long, the user cannot see the most recent input.
-    'Solution: make read-only OR scrollbar?
-
+    '(COULD NOT REPLICATE)
 
     '@@@ EXTREMELY IMPORTANT TODO: Debug all the calcualtion buttons before moving onto DISTANT TODO.
     'TODO: debug buttons... And probably more
 
-
-
-
     'DISTANT TODO: add history, add light/dark modes switch
-
-
-    'fix various bugs
-    'merge AddOrSub and MulOrDiv PROCs
-    'merge operation buttons click PROCs
-    'merge number buttons click PROCs
-    'add some documentation to non-event PROCs
 
     Dim signChanged As Boolean = False
     Dim resetWorkspace As Boolean = True
-
+    Dim btnsEnabled As Boolean = True
+    Dim errorOccurred As Boolean = False
 
 
 
@@ -66,28 +46,51 @@ Public Class frmCalculator
 
 
 
+
+    Private Sub btnClearEntry_Click(sender As Object, e As EventArgs) Handles btnClearEntry.Click
+        buttonsEnabled(True)
+        txtWorkspace.Text = "0"
+        resetWorkspace = True
+        signChanged = False
+        errorOccurred = False
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
+
+    End Sub
+
+
     Private Sub btnClear_Click(sender As Object, e As EventArgs) Handles btnClear.Click
         buttonsEnabled(True)
-        txtWorkspace.Text = 0
+        txtWorkspace.Text = "0"
         lblWorkspaceHold.Text = ""
         resetWorkspace = False
         signChanged = False
+        errorOccurred = False
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
     End Sub
+
 
 
 
     Private Sub frmCalculator_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
 
-        If e.KeyCode = Keys.Add OrElse My.Computer.Keyboard.ShiftKeyDown AndAlso e.KeyCode = 187 Then
+        If btnsEnabled AndAlso (e.KeyCode = Keys.Add OrElse
+           My.Computer.Keyboard.ShiftKeyDown AndAlso e.KeyCode = 187) Then
             Calculate("add")
-        ElseIf e.KeyCode = Keys.Subtract OrElse e.KeyCode = 189 Then
+        ElseIf btnsEnabled AndAlso (e.KeyCode = Keys.Subtract OrElse e.KeyCode = 189) Then
             Calculate("sub")
-        ElseIf e.KeyCode = Keys.Multiply OrElse My.Computer.Keyboard.ShiftKeyDown AndAlso e.KeyCode = Keys.D8 Then
+        ElseIf btnsEnabled AndAlso e.KeyCode = Keys.Multiply OrElse
+            (My.Computer.Keyboard.ShiftKeyDown AndAlso e.KeyCode = Keys.D8) Then
             Calculate("mul")
-        ElseIf e.KeyCode = Keys.Divide OrElse e.KeyCode = 191 Then
+        ElseIf btnsEnabled AndAlso (e.KeyCode = Keys.Divide OrElse e.KeyCode = 191) Then
             Calculate("div")
-        ElseIf e.KeyCode = 13 OrElse e.KeyCode = 187 Then
+        ElseIf btnsEnabled AndAlso (e.KeyCode = 13 OrElse e.KeyCode = 187) Then
             btnEquals_Click(Nothing, Nothing)
+        ElseIf btnsEnabled AndAlso (e.KeyCode = 190 OrElse e.KeyCode = 46) Then
+            btnDecimal_Click(Nothing, Nothing)
+        ElseIf btnsEnabled AndAlso e.KeyCode = Keys.Back Then
+            btnBackspace_Click(Nothing, Nothing)
         ElseIf e.KeyCode = Keys.NumPad0 OrElse e.KeyCode = Keys.D0 Then
             EnterNumber(0)
         ElseIf e.KeyCode = Keys.NumPad1 OrElse e.KeyCode = Keys.D1 Then
@@ -108,13 +111,11 @@ Public Class frmCalculator
             EnterNumber(8)
         ElseIf e.KeyCode = Keys.NumPad9 OrElse e.KeyCode = Keys.D9 Then
             EnterNumber(9)
-        ElseIf e.KeyCode = 190 OrElse e.KeyCode = 46 Then
-            btnDecimal_Click(Nothing, Nothing)
-        ElseIf e.KeyCode = Keys.Back Then
-            btnBackspace_Click(Nothing, Nothing)
         Else
 
         End If
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
 
     End Sub
 
@@ -124,30 +125,13 @@ Public Class frmCalculator
 
         Dim button As Button = CType(sender, Button)
 
-        Select Case button.Name
-            Case "btnZero"
-                EnterNumber(0)
-            Case "btnOne"
-                EnterNumber(1)
-            Case "btnTwo"
-                EnterNumber(2)
-            Case "btnThree"
-                EnterNumber(3)
-            Case "btnFour"
-                EnterNumber(4)
-            Case "btnFive"
-                EnterNumber(5)
-            Case "btnSix"
-                EnterNumber(6)
-            Case "btnSeven"
-                EnterNumber(7)
-            Case "btnEight"
-                EnterNumber(8)
-            Case "btnNine"
-                EnterNumber(9)
-            Case Else
-                MsgBox("ERROR in NumberButtons_Click PROC: Could not identify button case.", MsgBoxStyle.Critical)
-        End Select
+        Try
+            EnterNumber(button.Text)
+        Catch ex As Exception
+            MsgBox("ERROR in NumberButtons_Click PROC", MsgBoxStyle.Critical) 'DELETE
+        End Try
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
 
     End Sub
 
@@ -166,16 +150,9 @@ Public Class frmCalculator
                 MsgBox("ERROR in OperationButtons_Click PROC: Could not identify button case.", MsgBoxStyle.Critical)
         End Select
 
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
     End Sub
 
-
-
-    Private Sub btnClearEntry_Click(sender As Object, e As EventArgs) Handles btnClearEntry.Click
-        buttonsEnabled(True)
-        txtWorkspace.Text = "0"
-        resetWorkspace = True
-        signChanged = False
-    End Sub
 
     Private Sub btnEquals_Click(sender As Object, e As EventArgs) Handles btnEquals.Click
         Dim partOne As String = lblWorkspaceHold.Text
@@ -186,11 +163,11 @@ Public Class frmCalculator
             bothParts = bothParts.Replace("x", "*")
         End If
 
-        bothParts = "1.0 *" & bothParts
+        bothParts = "1.0 * " & bothParts
 
         Dim result As Decimal = 0
         Try
-            result = New DataTable().Compute(bothParts & "*1.0", Nothing)
+            result = New DataTable().Compute(bothParts & " * 1.0", Nothing)
             txtWorkspace.Text = CleanUpNumber(result)
             resetWorkspace = True
             lblWorkspaceHold.Text = ""
@@ -203,6 +180,7 @@ Public Class frmCalculator
             ErrorCaught()
         End Try
 
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
     End Sub
 
 
@@ -259,6 +237,11 @@ Public Class frmCalculator
         LabelExited.BackColor = Color.FromArgb(31, 31, 31)
     End Sub
 
+    Private Sub lblExit_MouseEnter(sender As Object, e As EventArgs) Handles lblExit.MouseEnter
+        lblExit.BackColor = Color.Red
+    End Sub
+
+
     Private Sub DigitButtons_MouseLeave(sender As Object, e As EventArgs) Handles btnZero.MouseLeave, btnOne.MouseLeave, btnTwo.MouseLeave,
                                                btnThree.MouseLeave, btnSix.MouseLeave, btnSeven.MouseLeave, btnNine.MouseLeave,
                                                btnFour.MouseLeave, btnFive.MouseLeave, btnEight.MouseLeave
@@ -279,9 +262,6 @@ Public Class frmCalculator
         Me.Close()
     End Sub
 
-    Private Sub lblExit_MouseEnter(sender As Object, e As EventArgs) Handles lblExit.MouseEnter
-        lblExit.BackColor = Color.Red
-    End Sub
 
 
 
@@ -289,7 +269,7 @@ Public Class frmCalculator
 
 
     Private Sub btnBackspace_Click(sender As Object, e As EventArgs) Handles btnBackspace.Click
-        If txtWorkspace.Text <> "0" AndAlso txtWorkspace.Text <> "" Then
+        If CleanUpNumber(txtWorkspace.Text) <> "0" AndAlso txtWorkspace.Text <> "" Then
             If txtWorkspace.Text.Length = 2 AndAlso txtWorkspace.Text.Contains("-"c) Then
                 txtWorkspace.Text = "0"
             ElseIf txtWorkspace.Text.Length = 1 Then
@@ -298,6 +278,8 @@ Public Class frmCalculator
                 txtWorkspace.Text = txtWorkspace.Text.Substring(0, txtWorkspace.Text.Length - 1)
             End If
         End If
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
     End Sub
 
     Private Sub btnPlusMinus_Click(sender As Object, e As EventArgs) Handles btnPlusMinus.Click
@@ -308,7 +290,22 @@ Public Class frmCalculator
                 txtWorkspace.Text = txtWorkspace.Text.Substring(1, txtWorkspace.Text.Length - 1)
             End If
         End If
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
     End Sub
+
+
+    Private Sub btnDecimal_Click(sender As Object, e As EventArgs) Handles btnDecimal.Click
+        If txtWorkspace.Text.Contains(".") = False AndAlso resetWorkspace = False Then
+            txtWorkspace.Text = txtWorkspace.Text & "."
+        ElseIf resetWorkspace = True Then
+            txtWorkspace.Text = "0."
+            resetWorkspace = False
+        End If
+
+        btnEquals.Select() 'refocus so the Enter key would work properly (Enter always clicks Equals button)
+    End Sub
+
 
 
 
@@ -322,7 +319,9 @@ Public Class frmCalculator
         resetWorkspace = True
         lblWorkspaceHold.Text = ""
         buttonsEnabled(False)
+        errorOccurred = True
     End Sub
+
 
 
     ''' <param name="numberString">A string containing a properly formatted number.</param>
@@ -368,6 +367,8 @@ Public Class frmCalculator
 
     End Function
 
+
+
     ''' <param name="number">A decimal value.</param>
     ''' <summary>
     ''' Adds number to the workspace based on current value in workspace. 
@@ -392,8 +393,11 @@ Public Class frmCalculator
             End If
 
             signChanged = False
+            errorOccurred = False
         End If
     End Sub
+
+
 
     ''' <param name="operation">Operations available: "mul", "div", "sub", or "add".</param>
     ''' <summary>
@@ -402,7 +406,6 @@ Public Class frmCalculator
     Private Sub Calculate(operation As String)
         Dim sign As String = ""
         Dim result As String = 0
-        Dim errorOccurred As Boolean = False
 
         Select Case operation
             Case "mul", "*"
@@ -432,24 +435,21 @@ Public Class frmCalculator
                     lblWorkspaceHold.Text += CleanUpNumber(txtWorkspace.Text) & " " & sign & " "
             End Select
 
-            If operation = "mul" OrElse operation = "div" OrElse
-               operation = "*" OrElse operation = "/" Then
-                Try
+            Try
+                If operation = "mul" OrElse operation = "div" OrElse
+                   operation = "*" OrElse operation = "/" Then
                     result = New DataTable().Compute("1.0 * " & lblWorkspaceHold.Text.Replace("x", "*") & "1.0", Nothing)
-                    Exit Try
-                Catch ex As DivideByZeroException
-                    txtWorkspace.Text = "Cannot divide by 0"
-                    ErrorCaught()
-                    errorOccurred = True
-                Catch ex As OverflowException
-                    txtWorkspace.Text = "‭Overflow‬"
-                    ErrorCaught()
-                    errorOccurred = True
-                End Try
-            Else
-                Dim bothParts As String = "1.0 * " & lblWorkspaceHold.Text
-                result = New DataTable().Compute(bothParts.Replace("x", "*") & "0.0", Nothing)
-            End If
+                Else
+                    result = New DataTable().Compute("1.0 * " & lblWorkspaceHold.Text.Replace("x", "*") & "0.0", Nothing)
+                End If
+                Exit Try
+            Catch ex As DivideByZeroException
+                txtWorkspace.Text = "Cannot divide by 0"
+                ErrorCaught()
+            Catch ex As OverflowException
+                txtWorkspace.Text = "‭Overflow‬"
+                ErrorCaught()
+            End Try
 
             If errorOccurred = False Then
                 txtWorkspace.Text = CleanUpNumber(result)
@@ -459,6 +459,8 @@ Public Class frmCalculator
         End If
 
     End Sub
+
+
 
     ''' <param name="enable">True to enable, False to disable.</param>
     ''' <summary>
@@ -474,6 +476,8 @@ Public Class frmCalculator
             btnEquals.Enabled = True
             btnDecimal.Enabled = True
             btnPlusMinus.Enabled = True
+
+            btnsEnabled = True
         ElseIf enable = False And btnEquals.Enabled = True Then
             btnBackspace.Enabled = False
             btnDivide.Enabled = False
@@ -483,18 +487,9 @@ Public Class frmCalculator
             btnEquals.Enabled = False
             btnDecimal.Enabled = False
             btnPlusMinus.Enabled = False
+
+            btnsEnabled = False
         End If
-    End Sub
-
-    Private Sub btnDecimal_Click(sender As Object, e As EventArgs) Handles btnDecimal.Click
-        If txtWorkspace.Text.Contains(".") = False AndAlso resetWorkspace = False Then
-            txtWorkspace.Text = txtWorkspace.Text & "."
-        ElseIf resetWorkspace = True Then
-            txtWorkspace.Text = "0."
-            resetWorkspace = False
-        End If
-
-
     End Sub
 
 
