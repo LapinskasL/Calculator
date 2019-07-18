@@ -136,11 +136,17 @@ Public Class frmCalculator
 
     '@ backspace button Click event handler
     Private Sub btnBackspace_Click(sender As Object, e As EventArgs) Handles btnBackspace.Click
-        'if workspace textbox is not 0 and is not empty
-        If CleanUpNumber(txtWorkspace.Text) <> "0" AndAlso txtWorkspace.Text <> "" Then
+        'if cleaned workspace text is not 0 AND is not empty, OR unclean text is "0."
+        If (CleanUpNumber(txtWorkspace.Text) <> "0" AndAlso txtWorkspace.Text <> "") OrElse txtWorkspace.Text = "0." Then
             'if it is a single-digit negative number (2 chars)
-            If txtWorkspace.Text.Length = 2 AndAlso txtWorkspace.Text.Contains("-"c) Then
-                txtWorkspace.Text = "0" 'reset workspace text to 0
+            If txtWorkspace.Text.Length = 2 Then
+                'if text contains "-"
+                If txtWorkspace.Text.Contains("-"c) Then
+                    txtWorkspace.Text = "0" 'reset workspace text to 0
+                Else
+                    'remove rightmost character from workspace textbox
+                    txtWorkspace.Text = txtWorkspace.Text.Substring(0, txtWorkspace.Text.Length - 1)
+                End If
             ElseIf txtWorkspace.Text.Length = 1 Then 'if there's only 1 char (1 digit)
                 txtWorkspace.Text = "0" 'reset workspace text to 0
             Else
@@ -382,29 +388,31 @@ Public Class frmCalculator
 
     ''' <param name="number">A decimal value.</param>
     ''' <summary>
-    ''' Adds number to the workspace based on current value in workspace. 
+    ''' Adds number to the workspace text. 
     ''' </summary>
     Private Sub EnterNumber(number As Decimal)
+        'if workspace's text length is less than 16 chars OR workspace needs to be reset
         If txtWorkspace.Text.Length < 16 Or resetWorkspace = True Then
             ButtonsEnabled(True)
+            'if workspace text is "0"
+            If txtWorkspace.Text = "0" Then
+                txtWorkspace.Text = number  'change "0" to value in number
+                resetWorkspace = False
 
-            If txtWorkspace.Text = "0" AndAlso Not txtWorkspace.Text = "0." Then
-                txtWorkspace.Text = number
-                resetWorkspace = False
+                'else if workspace text needs to be reset and it doesn't equal "0."
             ElseIf resetWorkspace = True AndAlso Not txtWorkspace.Text = "0." Then
-                txtWorkspace.Text = number
+                txtWorkspace.Text = number  'change "0" to value in number
                 resetWorkspace = False
+
+                'else if workspace text is not empty and does not need to be reset
             ElseIf txtWorkspaceHold.Text <> "" AndAlso resetWorkspace = False Then
-                txtWorkspace.Text = txtWorkspace.Text & number
-            ElseIf resetWorkspace = True Then
-                txtWorkspace.Text = txtWorkspace.Text & number
-                resetWorkspace = False
+                txtWorkspace.Text = txtWorkspace.Text & number  'add the number to text
             Else
                 txtWorkspace.Text = txtWorkspace.Text & number
             End If
 
-            alterSign = False
-            errorOccurred = False
+            alterSign = False       'because a digit was inputted, there is no sign (+, -, *, or /) to alter
+            errorOccurred = False   'any error that had occured is irrelevant now
         End If
     End Sub
 
