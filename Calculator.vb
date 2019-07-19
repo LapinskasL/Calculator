@@ -1,19 +1,11 @@
 ﻿'Author: Lukas Lapinskas
 'Summary: A basic calculator. Style closely resembles Windows 10 Calculator.
 
+'DISTANT TODO: add history, add light/dark modes switch
+
+'NOTE: when I say 'sign' or 'operation', I mean either +, -, /, or *
+
 Public Class frmCalculator
-
-    'FUNCTIONAL PROJECT
-
-    'CURRENT BUGS: 
-    'When the result is being calculated if the operation parameter in the Calculate PROC is any - or any +,
-    'the result does not get converted to a Decimal value.
-    '(COULD NOT REPLICATE)
-
-    '@@@ EXTREMELY IMPORTANT TODO: Debug all the calcualtion buttons before moving onto DISTANT TODO.
-    'TODO: debug buttons... And probably more
-
-    'DISTANT TODO: add history, add light/dark modes switch
 
     Dim alterSign As Boolean = False        'set to true when user presses +,-,*,or / button. Set to false when user presses a digit number.
     Dim resetWorkspace As Boolean = True    'set to false when the user 
@@ -423,9 +415,10 @@ Public Class frmCalculator
     ''' Calculates the expression based on given operation type. 
     ''' </summary>
     Private Sub Calculate(operation As String)
-        Dim sign As String = ""
-        Dim result As String = 0
+        Dim sign As String = ""     'holds the sign (either +, -, /, or *
+        Dim result As String = 0    'holds the calculated result
 
+        'based on the parameter value, select change the value of the "sign" variable
         Select Case operation
             Case "mul", "*"
                 sign = "*"
@@ -439,48 +432,54 @@ Public Class frmCalculator
                 MsgBox("ERROR in CalculationType PROC: Could not assign proper sign.", MsgBoxStyle.Critical)
         End Select
 
+        'if the sign needs changing AND workspaceHold text isn't empty
         If alterSign = True And txtWorkspaceHold.Text <> "" Then
+            'replace the most recent operation sign (-, +, /, or *) in workspaceHold
             Select Case operation
-                Case "mul", "*"
+                Case "mul", "*" 'if it's multiplication, replace it with an "x"
                     txtWorkspaceHold.Text = txtWorkspaceHold.Text.Substring(0, txtWorkspaceHold.Text.Length - 3) & " x "
                 Case Else
                     txtWorkspaceHold.Text = txtWorkspaceHold.Text.Substring(0, txtWorkspaceHold.Text.Length - 3) & " " & sign & " "
             End Select
-        Else
+        Else 'otherwise
+            'add the operation sign (-, +, /, or *) to workspaceHold
             Select Case operation
-                Case "mul", "*"
+                Case "mul", "*" 'if it's multiplication, replace it with an "x"
                     txtWorkspaceHold.Text += CleanUpNumber(txtWorkspace.Text) & " x "
                 Case Else
                     txtWorkspaceHold.Text += CleanUpNumber(txtWorkspace.Text) & " " & sign & " "
             End Select
 
-
+            'attempt to calculate, but catch arithmetic and overflow errors
             Try
+                'if the operation at the end is multiplication or division
                 If operation = "mul" OrElse operation = "div" OrElse
                    operation = "*" OrElse operation = "/" Then
+                    'add "1.0" at the end to prevent crashes when trying to calculate (ex: 65 * 1.0 instead of 65. *), and
+                    'to convert the result into decimal
                     result = New DataTable().Compute("1.0 * " & txtWorkspaceHold.Text.Replace("x", "*") & "1.0", Nothing)
                 Else
+                    'add 0.0 at the end to prevent crashes and convert result to decimal
                     result = New DataTable().Compute("1.0 * " & txtWorkspaceHold.Text.Replace("x", "*") & "0.0", Nothing)
                 End If
                 Exit Try
-            Catch ex As DivideByZeroException
-                txtWorkspace.Text = "Cannot divide by 0"
-                ErrorCaught()
-            Catch ex As OverflowException
-                txtWorkspace.Text = "‭Overflow‬"
-                ErrorCaught()
+            Catch ex As DivideByZeroException               'if user attempts to divide by zero
+                txtWorkspace.Text = "Cannot divide by 0"    'show an error
+                ErrorCaught()                               'call ErrorCaught PROC
+            Catch ex As OverflowException           'if value does not fit in Decimal
+                txtWorkspace.Text = "‭Overflow‬"      'show an error
+                ErrorCaught()                       'call ErrorCaught PROC
             End Try
 
+            'if an eror was not
             If errorOccurred = False Then
-                txtWorkspace.Text = CleanUpNumber(result)
-                resetWorkspace = True
-                alterSign = True
+                txtWorkspace.Text = CleanUpNumber(result)   'show result
+                resetWorkspace = True                       'indicate that next digit entry will reset workspace text
+                alterSign = True                            'indicate that the sign will need to be altered
             End If
         End If
 
     End Sub
-
-
 
 
 
@@ -495,6 +494,8 @@ Public Class frmCalculator
             ButtonsEnabled_2(enable)
         End If
     End Sub
+
+
 
     ''' <param name="enable">True to enable, False to disable.</param>
     ''' <summary>
@@ -512,6 +513,8 @@ Public Class frmCalculator
 
         btnsEnabled = enable
     End Sub
+
+
 
 
     ''' <summary>
