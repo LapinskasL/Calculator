@@ -1,3 +1,3 @@
-# Calculator (In-Progress)
+# Calculator
 
-I'm currently working on a calculator app with a GUI design very similar to the calculator in Windows 10.
+This is a basic calculator application. The GUI design was inspired by Windows 10 Calculator. Keyboard controls are available to press the buttons.
