@@ -3,7 +3,7 @@
 
 'DISTANT TODO: add history, add light/dark modes switch
 
-'NOTE: when I say 'sign' or 'operation', I mean either +, -, /, or *
+'NOTE: when I refer to 'sign' or 'operation' in the documentation, I mean the operations +, -, /, and *
 
 Public Class frmCalculator
 
