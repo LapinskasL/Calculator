@@ -11,7 +11,7 @@ Public Class frmCalculator
     Dim resetWorkspace As Boolean = True    'set to false when the user 
     Dim btnsEnabled As Boolean = True       'set to false if an error occurs
     Dim errorOccurred As Boolean = False    'set to true if an error occurs. Set to false once the user presses a button
-
+    Dim darkModeTheme As Boolean = True
 
     Dim drag As Boolean = False     'true if mouse is being dragged, false if not
     Dim mousex As Integer = 0       'holds value of cursor's x axis 
@@ -247,7 +247,12 @@ Public Class frmCalculator
                                             btnClear.MouseEnter
 
         Dim EnteredButton = CType(sender, Button) 'holds the button pressed
-        EnteredButton.BackColor = Color.FromArgb(60, 60, 60) 'changes button's color
+
+        If darkModeTheme Then
+            EnteredButton.BackColor = Color.FromArgb(60, 60, 60) 'changes button's color to dark
+        Else
+            EnteredButton.BackColor = Color.FromArgb(155, 155, 155) 'changes button's color to light
+        End If
     End Sub
 
     '@ MouseEnter event handlers for column 4 buttons
@@ -256,8 +261,14 @@ Public Class frmCalculator
 
         Dim EnteredButton As Button = CType(sender, Button) 'holds the button pressed
 
-        EnteredButton.BackColor = Color.FromArgb(255, 144, 0) 'changes button's color
-        EnteredButton.ForeColor = Color.FromArgb(31, 31, 31)  'changes buttons text color
+        EnteredButton.BackColor = Color.FromArgb(255, 174, 0) 'changes button's color
+
+        If darkModeTheme Then
+            EnteredButton.ForeColor = Color.FromArgb(31, 31, 31)  'changes buttons text color to dark
+        Else
+            EnteredButton.ForeColor = Color.FromArgb(224, 224, 224)  'changes buttons text color to light
+        End If
+
     End Sub
 
     '@ MouseLeave event handlers for column 4 buttons
@@ -266,8 +277,14 @@ Public Class frmCalculator
 
         Dim LeftButton = CType(sender, Button) 'holds the button pressed
 
-        LeftButton.BackColor = Color.FromArgb(19, 19, 19)    'changes button's color
-        LeftButton.ForeColor = Color.FromArgb(255, 255, 255) 'changes button's text color
+        If darkModeTheme Then
+            LeftButton.BackColor = Color.FromArgb(19, 19, 19)    'changes button's color
+            LeftButton.ForeColor = Color.FromArgb(255, 255, 255) 'changes button's text color
+        Else
+            LeftButton.BackColor = Color.FromArgb(236, 236, 236)    'changes button's color
+            LeftButton.ForeColor = Color.FromArgb(0, 0, 0) 'changes button's text color
+        End If
+
     End Sub
 
     '@ MouseLeave event handlers for the non-digit buttons
@@ -277,19 +294,33 @@ Public Class frmCalculator
 
         Dim LeftButton As Button = CType(sender, Button)  'holds the button pressed
 
-        LeftButton.BackColor = Color.FromArgb(19, 19, 19) 'changes button's color
+        If darkModeTheme Then
+            LeftButton.BackColor = Color.FromArgb(19, 19, 19) 'changes button's color to dark
+        Else
+            LeftButton.BackColor = Color.FromArgb(236, 236, 236) 'changes button's color to dark
+        End If
+
     End Sub
 
     '@ minimize label MouseEnter event handler
     Private Sub lblMinimize_MouseEnter(sender As Object, e As EventArgs) Handles lblMinimize.MouseEnter
-        lblMinimize.BackColor = Color.FromArgb(60, 60, 60) 'changes button's color
+        If darkModeTheme Then
+            lblMinimize.BackColor = Color.FromArgb(60, 60, 60) 'changes button's color to dark
+        Else
+            lblMinimize.BackColor = Color.FromArgb(195, 195, 195) 'changes button's color to light
+        End If
     End Sub
 
     '@ minimize and exit labels MouseLeave event handlers
     Private Sub MinimizeExitLabels_MouseLeave(sender As Object, e As EventArgs) Handles lblMinimize.MouseLeave, lblExit.MouseLeave
         Dim LabelExitMinimize As Label = CType(sender, Label)    'holds label handled
 
-        LabelExitMinimize.BackColor = Color.FromArgb(40, 40, 40) 'changes label's background color
+        If darkModeTheme Then
+            LabelExitMinimize.BackColor = Color.FromArgb(40, 40, 40) 'changes label's background color to dark
+        Else
+            LabelExitMinimize.BackColor = Color.White 'changes label's background color to light
+        End If
+
     End Sub
 
     '@ exit label MouseEnter event handler
@@ -304,7 +335,12 @@ Public Class frmCalculator
 
         Dim LeftDigitButton As Button = CType(sender, Button) 'holds button MouseLeave'd
 
-        LeftDigitButton.BackColor = Color.FromArgb(6, 6, 6)   'changes color of the button
+        If darkModeTheme Then
+            LeftDigitButton.BackColor = Color.FromArgb(6, 6, 6)   'changes color of the button
+        Else
+            LeftDigitButton.BackColor = Color.FromArgb(210, 210, 210)   'changes color of the button
+        End If
+
     End Sub
 
 
@@ -527,4 +563,102 @@ Public Class frmCalculator
         errorOccurred = True
     End Sub
 
+
+    Private Sub ChangeColorMode(modeType)
+        Dim textColor As Color
+        Dim backColor As Color
+        Dim digitBackColor As Color
+        Dim nonDigitBackColor As Color
+
+        If modeType = "dark" Then
+            textColor = Color.White
+            backColor = Color.FromArgb(40, 40, 40)
+            digitBackColor = Color.FromArgb(6, 6, 6)
+            nonDigitBackColor = Color.FromArgb(19, 19, 19)
+        ElseIf modeType = "light" Then
+            textColor = Color.Black
+            backColor = Color.White
+            digitBackColor = Color.FromArgb(210, 210, 210)
+            nonDigitBackColor = Color.FromArgb(236, 236, 236)
+        Else
+            Throw New System.Exception("Cannot identify mode in ChangeColorMode subroutine.")
+        End If
+
+        btnZero.ForeColor = textColor
+        btnOne.ForeColor = textColor
+        btnTwo.ForeColor = textColor
+        btnThree.ForeColor = textColor
+        btnFour.ForeColor = textColor
+        btnFive.ForeColor = textColor
+        btnSix.ForeColor = textColor
+        btnSeven.ForeColor = textColor
+        btnEight.ForeColor = textColor
+        btnNine.ForeColor = textColor
+
+        btnZero.BackColor = digitBackColor
+        btnOne.BackColor = digitBackColor
+        btnTwo.BackColor = digitBackColor
+        btnThree.BackColor = digitBackColor
+        btnFour.BackColor = digitBackColor
+        btnFive.BackColor = digitBackColor
+        btnSix.BackColor = digitBackColor
+        btnSeven.BackColor = digitBackColor
+        btnEight.BackColor = digitBackColor
+        btnNine.BackColor = digitBackColor
+
+
+        btnDivide.ForeColor = textColor
+        btnTimes.ForeColor = textColor
+        btnMinus.ForeColor = textColor
+        btnPlus.ForeColor = textColor
+        btnEquals.ForeColor = textColor
+
+        btnClearEntry.ForeColor = textColor
+        btnClear.ForeColor = textColor
+        btnBackspace.ForeColor = textColor
+        btnPlusMinus.ForeColor = textColor
+        btnDecimal.ForeColor = textColor
+
+
+        btnDivide.BackColor = nonDigitBackColor
+        btnTimes.BackColor = nonDigitBackColor
+        btnMinus.BackColor = nonDigitBackColor
+        btnPlus.BackColor = nonDigitBackColor
+        btnEquals.BackColor = nonDigitBackColor
+
+        btnClearEntry.BackColor = nonDigitBackColor
+        btnClear.BackColor = nonDigitBackColor
+        btnBackspace.BackColor = nonDigitBackColor
+        btnPlusMinus.BackColor = nonDigitBackColor
+        btnDecimal.BackColor = nonDigitBackColor
+
+
+        txtWorkspace.ForeColor = textColor
+        lblCalculator.ForeColor = textColor
+
+        lblMinimize.ForeColor = textColor
+        lblExit.ForeColor = textColor
+
+        lblCalculator.BackColor = backColor
+        txtWorkspaceHold.BackColor = backColor
+        txtWorkspace.BackColor = backColor
+        lblExit.BackColor = backColor
+        lblMinimize.BackColor = backColor
+        Me.BackColor = backColor
+
+
+    End Sub
+    Private Sub frmCalculator_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        chkThemeMode.Appearance = System.Windows.Forms.Appearance.Button
+    End Sub
+
+    Private Sub chkThemeMode_CheckedChanged(sender As Object, e As EventArgs) Handles chkThemeMode.CheckedChanged
+        If darkModeTheme Then
+            ChangeColorMode("light")
+            darkModeTheme = False
+        Else
+            ChangeColorMode("dark")
+            darkModeTheme = True
+        End If
+    End Sub
 End Class
