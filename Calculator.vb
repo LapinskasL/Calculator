@@ -1,7 +1,7 @@
 ﻿'Author: Lukas Lapinskas
 'Summary: A basic calculator. Style closely resembles Windows 10 Calculator.
 
-'DISTANT TODO: add history, add light/dark modes switch
+'DISTANT TODO: add history, fix tab indexes
 
 'NOTE: when I refer to 'sign' or 'operation' in the documentation, I mean the operations +, -, /, and *
 
@@ -11,11 +11,24 @@ Public Class frmCalculator
     Dim resetWorkspace As Boolean = True    'set to false when the user 
     Dim btnsEnabled As Boolean = True       'set to false if an error occurs
     Dim errorOccurred As Boolean = False    'set to true if an error occurs. Set to false once the user presses a button
-    Dim darkModeTheme As Boolean = True
+    Dim darkTheme As Boolean = True         'sets to true if dark theme is enabled. False if light theme is enabled.
 
     Dim drag As Boolean = False     'true if mouse is being dragged, false if not
     Dim mousex As Integer = 0       'holds value of cursor's x axis 
     Dim mousey As Integer = 0       'holds value of cursor's y axis 
+
+
+
+    '@ frmCalculator's Load event handler.
+    Private Sub frmCalculator_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        chkThemeMode.Appearance = System.Windows.Forms.Appearance.Button 'changes checkbox appearance to a button
+        chkThemeMode.BackColor = Color.FromArgb(255, 255, 255)
+    End Sub
+
+
+
+
+
 
     '@ lblCalculator MouseDown event handler
     Private Sub lblCalculator_MouseDown(sender As Object, e As MouseEventArgs) Handles lblCalculator.MouseDown
@@ -42,6 +55,21 @@ Public Class frmCalculator
     Private Sub lblCalculator_MouseUp(sender As Object, e As MouseEventArgs) Handles lblCalculator.MouseUp
         'drag is disabled
         drag = False
+    End Sub
+
+    '@ chkThemeMode CheckChanged event handler.
+    Private Sub chkThemeMode_CheckedChanged(sender As Object, e As EventArgs) Handles chkThemeMode.CheckedChanged
+        'if dark theme is on, change it to light theme
+        'else, if light theme is on, change it to dark theme.
+        If darkTheme Then
+            ChangeTheme("light")
+            darkTheme = False
+            chkThemeMode.BackColor = Color.FromArgb(40, 40, 40)
+        Else
+            ChangeTheme("dark")
+            darkTheme = True
+            chkThemeMode.BackColor = Color.FromArgb(255, 255, 255)
+        End If
     End Sub
 
 
@@ -248,7 +276,7 @@ Public Class frmCalculator
 
         Dim EnteredButton = CType(sender, Button) 'holds the button pressed
 
-        If darkModeTheme Then
+        If darkTheme Then
             EnteredButton.BackColor = Color.FromArgb(60, 60, 60) 'changes button's color to dark
         Else
             EnteredButton.BackColor = Color.FromArgb(155, 155, 155) 'changes button's color to light
@@ -263,7 +291,7 @@ Public Class frmCalculator
 
         EnteredButton.BackColor = Color.FromArgb(255, 174, 0) 'changes button's color
 
-        If darkModeTheme Then
+        If darkTheme Then
             EnteredButton.ForeColor = Color.FromArgb(31, 31, 31)  'changes buttons text color to dark
         Else
             EnteredButton.ForeColor = Color.FromArgb(224, 224, 224)  'changes buttons text color to light
@@ -277,7 +305,7 @@ Public Class frmCalculator
 
         Dim LeftButton = CType(sender, Button) 'holds the button pressed
 
-        If darkModeTheme Then
+        If darkTheme Then
             LeftButton.BackColor = Color.FromArgb(19, 19, 19)    'changes button's color
             LeftButton.ForeColor = Color.FromArgb(255, 255, 255) 'changes button's text color
         Else
@@ -294,7 +322,7 @@ Public Class frmCalculator
 
         Dim LeftButton As Button = CType(sender, Button)  'holds the button pressed
 
-        If darkModeTheme Then
+        If darkTheme Then
             LeftButton.BackColor = Color.FromArgb(19, 19, 19) 'changes button's color to dark
         Else
             LeftButton.BackColor = Color.FromArgb(236, 236, 236) 'changes button's color to dark
@@ -304,7 +332,7 @@ Public Class frmCalculator
 
     '@ minimize label MouseEnter event handler
     Private Sub lblMinimize_MouseEnter(sender As Object, e As EventArgs) Handles lblMinimize.MouseEnter
-        If darkModeTheme Then
+        If darkTheme Then
             lblMinimize.BackColor = Color.FromArgb(60, 60, 60) 'changes button's color to dark
         Else
             lblMinimize.BackColor = Color.FromArgb(195, 195, 195) 'changes button's color to light
@@ -315,7 +343,7 @@ Public Class frmCalculator
     Private Sub MinimizeExitLabels_MouseLeave(sender As Object, e As EventArgs) Handles lblMinimize.MouseLeave, lblExit.MouseLeave
         Dim LabelExitMinimize As Label = CType(sender, Label)    'holds label handled
 
-        If darkModeTheme Then
+        If darkTheme Then
             LabelExitMinimize.BackColor = Color.FromArgb(40, 40, 40) 'changes label's background color to dark
         Else
             LabelExitMinimize.BackColor = Color.White 'changes label's background color to light
@@ -335,7 +363,7 @@ Public Class frmCalculator
 
         Dim LeftDigitButton As Button = CType(sender, Button) 'holds button MouseLeave'd
 
-        If darkModeTheme Then
+        If darkTheme Then
             LeftDigitButton.BackColor = Color.FromArgb(6, 6, 6)   'changes color of the button
         Else
             LeftDigitButton.BackColor = Color.FromArgb(210, 210, 210)   'changes color of the button
@@ -351,7 +379,9 @@ Public Class frmCalculator
 
 
 
-
+    '@ All event handler procedures end here
+    '@@@ ------------------------------------------------------------------
+    '@ Other procedures and functions begin below
 
 
 
@@ -552,7 +582,6 @@ Public Class frmCalculator
 
 
 
-
     ''' <summary>
     ''' Runs necessary instructions if an error is caught.
     ''' </summary>
@@ -564,26 +593,34 @@ Public Class frmCalculator
     End Sub
 
 
-    Private Sub ChangeColorMode(modeType)
+
+    ''' <param name="theme">Theme to switch to. Two options: "dark" or "light".</param>
+    ''' <summary>
+    ''' Changes the color theme either to dark or light.
+    ''' </summary>
+    Private Sub ChangeTheme(theme)
         Dim textColor As Color
         Dim backColor As Color
         Dim digitBackColor As Color
         Dim nonDigitBackColor As Color
 
-        If modeType = "dark" Then
+        'If dark theme, set local variables to dark colors.
+        'If light theme, set local variables to light colors.
+        If theme = "dark" Then 'dark theme options
             textColor = Color.White
             backColor = Color.FromArgb(40, 40, 40)
             digitBackColor = Color.FromArgb(6, 6, 6)
             nonDigitBackColor = Color.FromArgb(19, 19, 19)
-        ElseIf modeType = "light" Then
+        ElseIf theme = "light" Then 'light theme optons
             textColor = Color.Black
             backColor = Color.White
             digitBackColor = Color.FromArgb(210, 210, 210)
             nonDigitBackColor = Color.FromArgb(236, 236, 236)
         Else
-            Throw New System.Exception("Cannot identify mode in ChangeColorMode subroutine.")
+            Throw New System.Exception("Cannot identify mode in ChangeTheme subroutine.")
         End If
 
+        'Assign color values to Calculator's components.
         btnZero.ForeColor = textColor
         btnOne.ForeColor = textColor
         btnTwo.ForeColor = textColor
@@ -645,20 +682,6 @@ Public Class frmCalculator
         lblExit.BackColor = backColor
         lblMinimize.BackColor = backColor
         Me.BackColor = backColor
-
-
-    End Sub
-    Private Sub frmCalculator_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        chkThemeMode.Appearance = System.Windows.Forms.Appearance.Button
     End Sub
 
-    Private Sub chkThemeMode_CheckedChanged(sender As Object, e As EventArgs) Handles chkThemeMode.CheckedChanged
-        If darkModeTheme Then
-            ChangeColorMode("light")
-            darkModeTheme = False
-        Else
-            ChangeColorMode("dark")
-            darkModeTheme = True
-        End If
-    End Sub
 End Class
